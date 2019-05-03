@@ -2,10 +2,11 @@ from ROOT import *
 from array import array
 gROOT.SetBatch(True)
 from math import sqrt
-from helperfunctions import * 
+from functions import * 
 from setFitParam2017 import *
 
-filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_test.root"
+#filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_test.root"
+filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_version2.root"
 file = TFile.Open(filename, "r")
 
 
@@ -25,6 +26,8 @@ gStyle.SetPadRightMargin(0.05)
 outputname = "tauTriggerFitResults_2017_test.root"
 outputfile = TFile( "../data/"+outputname, 'recreate')
 
+nfailed = 0
+
 # efficiency calculation after filling the histograms for 3 different triggers for each WPs of DATA and MC
 for ipath, trigger in enumerate(triggers):
 
@@ -41,7 +44,6 @@ for ipath, trigger in enumerate(triggers):
 				g_errBandDM68[idm].append(TGraphErrors())
 		
 		for index, typ in enumerate(types):
-			
 			f1.append(TF1( 'f1'+typ, '[5] - ROOT::Math::crystalball_cdf(-x, [0], [1], [2], [3])*([4])' ))
 			if(index ==0):
 				f1[index].SetLineColor( kBlue)
@@ -54,12 +56,11 @@ for ipath, trigger in enumerate(triggers):
 			f1[index].SetParName( 4, "scale" )
 			f1[index].SetParName( 5, "y-rise" )
 
-			f2 = [[],[]]
+		f2 = [[],[]]
                 for idm, DM in enumerate(tauDMs):
                         f2.append([])
                         for index, typ in enumerate(types):
-                                f2[idm].append(TF1( 'f2_'+ DM  +"_" + typ, '[5] - ROOT::Math::crystalball_cdf(-x, [0], [1], [2], [3]\
-)*([4])' ))
+				f2[idm].append(TF1( 'f2_'+ DM  +"_" + typ, '[5] - ROOT::Math::crystalball_cdf(-x, [0], [1], [2], [3])*([4])' ))
                                 if(idm ==0): f2[idm][index].SetLineColor( kBlue )
                                 elif(idm ==1): f2[idm][index].SetLineColor( kRed )
                                 elif(idm ==2): f2[idm][index].SetLineColor( kGreen+3 )
@@ -83,18 +84,19 @@ for ipath, trigger in enumerate(triggers):
 					
 			fitparam = setFitParam(f1, f2, index, 0)
 			print "trigger", trigger
+			f1[index].SetParLimits(1, 1, 99)
 			if(trigger == "ditau"): fitparam.setDiTauFitParameters()
 			if(trigger == "mutau"): fitparam.setMuTauFitParameters()
 			if(trigger == "etau"): fitparam.setETauFitParameters()
 
 			h_errBand68.append(TH1F(histoname+"_CL68","histo of 0.68 confidence band", 480, 20, 500))
 			g_errBand68.append(TGraphErrors())
-			
+		
 			print "Fit is performed for", trigger, "trigger in", wp ,"WP for", typ 
 			print "Fit parameters:", f1[index].GetParameter(0), f1[index].GetParameter(1), f1[index].GetParameter(2), f1[index].GetParameter(3), f1[index].GetParameter(4), f1[index].GetParameter(5)    
 			
 			fit_result = gEfficiency.Fit('f1'+ typ, 'S')
-			
+			if int(fit_result) != 0: nfailed += 1
 			funct = functions(gEfficiency, "histo_" + trigger + "ErrorBand_" + wp +"_"+ typ, idm, index, f1, h_errBand68[index], g_errBand68[index], fit_result, 0.68)
 			
 			h_errBand68[index], g_errBand68[index] = funct.getConfidenceInterval() 
@@ -131,6 +133,7 @@ for ipath, trigger in enumerate(triggers):
 				gEfficiencyDM = file.Get(trigger +"_gEfficiency_" + wp +"_"+ typ +"_"+ DM)
 			
 				fitparam2 = setFitParam(f1, f2, index, idm)
+				f2[idm][index].SetParLimits(1, 1, 99)
 				print "wp", wp
 				if(trigger == "ditau"): 
 					if(DM =="dm0" or DM =="dm1"): 
@@ -172,6 +175,7 @@ for ipath, trigger in enumerate(triggers):
 				print "Fit parameters:", f2[idm][index].GetParameter(0), f2[idm][index].GetParameter(1), f2[idm][index].GetParameter(2), f2[idm][index].GetParameter(3), f2[idm][index].GetParameter(4), f2[idm][index].GetParameter(5)    
 							
 				fit_result2 = gEfficiencyDM.Fit('f2_'+ DM +"_" + typ, 'S')
+				if int(fit_result2) != 0: nfailed += 1
 				functDM = functions(gEfficiencyDM, "histo_" + trigger + "_" + wp +"_"+ typ, idm, index, f2[idm] , h_errBandDM68[idm][index], g_errBandDM68[idm][index], fit_result2, 0.68)
 				h_errBandDM68[idm][index], g_errBandDM68[idm][index] = functDM.getConfidenceInterval()
 
@@ -203,7 +207,7 @@ for ipath, trigger in enumerate(triggers):
 			SFdm.Write(trigger + "_ScaleFactor_" + wp + '_' + DM)
 			SFdmerror.Write(trigger + '_ScaleFactorUnc_' + wp + '_' + DM)
 			
-
+print nfailed
 outputfile.Close()
 print "The output ROOT file has been created: ../data/" + outputname
 

@@ -4,12 +4,12 @@ gROOT.SetBatch(True)
 from math import sqrt
 from functions import * 
 from binning2017 import *
-from binning2018 import *
-from setFitParam import *
+#from binning2018 import *
+from setFitParam2017 import *
 
 #choose which year do you want to run it:
-Samples2017 = False
-Samples2018 = True
+Samples2017 = True
+Samples2018 = False
 
 
 # NTuples produced for VVLoose WP using 2017v2 MVA
@@ -90,7 +90,7 @@ for ipath, trigger in enumerate(triggers):
 				elif(Samples2018):
 					hPtDenDM[ipath][index][ind].append(TH1F (histoname + "_Den_" + DM, "", len(binDM[trigger][DM])-1, array('f',binDM[trigger][DM])))
 					hPtNumDM[ipath][index][ind].append(TH1F (histoname + "_Num_" + DM, "", len(binDM[trigger][DM])-1, array('f',binDM[trigger][DM])))
- 
+
 for index, filename in enumerate(files):
 	print  "filename", filename
 	
@@ -278,7 +278,6 @@ for ipath, trigger in enumerate(triggers):
 				for binid in range(0, nbins + 1):
 					if(hPtNumDM[ipath][index][WPind][idm].GetBinContent(binid) > hPtDenDM[ipath][index][WPind][idm].GetBinContent(binid)):
 						hPtNumDM[ipath][index][WPind][idm].SetBinContent(binid, hPtDenDM[ipath][index][WPind][idm].GetBinContent(binid))
-
 
 # efficiency calculation after filling the histograms for 3 different triggers for each WPs of DATA and MC
 for ipath, trigger in enumerate(triggers):
