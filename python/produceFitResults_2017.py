@@ -3,10 +3,12 @@ from array import array
 gROOT.SetBatch(True)
 from math import sqrt
 from functions import * 
-from setFitParam2017 import *
+from fittingTool import fittingTool
 
+filename = "../data/tauTriggerEfficiencies2016.root"
 #filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_test.root"
-filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_version2.root"
+#filename = "../data/tauTriggerEfficiencies2017_final_etauESshift_version2.root"
+#filename = "../data/tauTriggerEfficiencies2018.root"
 file = TFile.Open(filename, "r")
 
 
@@ -23,7 +25,9 @@ gStyle.SetPadLeftMargin(0.15)
 gStyle.SetPadTopMargin(0.09)
 gStyle.SetPadRightMargin(0.05)
 
-outputname = "tauTriggerFitResults_2017_test.root"
+outputname = "tauTriggerFitResults_2016_test.root"
+#outputname = "tauTriggerFitResults_2017_test.root"
+#outputname = "tauTriggerFitResults_2018_test.root"
 outputfile = TFile( "../data/"+outputname, 'recreate')
 
 nfailed = 0
@@ -51,7 +55,7 @@ for ipath, trigger in enumerate(triggers):
 				f1[index].SetLineColor( kRed)
 			f1[index].SetParName( 0, "alpha" )
 			f1[index].SetParName( 1, "n" )
-			f1[index].SetParName( 2, "simga" )
+			f1[index].SetParName( 2, "sigma" )
 			f1[index].SetParName( 3, "x0" )
 			f1[index].SetParName( 4, "scale" )
 			f1[index].SetParName( 5, "y-rise" )
@@ -69,7 +73,7 @@ for ipath, trigger in enumerate(triggers):
                                         elif index==1: f2[idm][1].SetLineColor( kRed )
                                 f2[idm][index].SetParName( 0, "alpha" )
                                 f2[idm][index].SetParName( 1, "n" )
-                                f2[idm][index].SetParName( 2, "simga" )
+                                f2[idm][index].SetParName( 2, "sigma" )
                                 f2[idm][index].SetParName( 3, "x0" )
                                 f2[idm][index].SetParName( 4, "scale" )
                                 f2[idm][index].SetParName( 5, "y-rise" )
@@ -79,23 +83,20 @@ for ipath, trigger in enumerate(triggers):
 		
 		for index, typ in enumerate(types):
 			
+			print "Fit is performed for", trigger, "trigger in", wp ,"WP for", typ 
+
 			gEfficiency = TGraphAsymmErrors()
 			gEfficiency = file.Get(trigger +"_gEfficiency_" + wp +"_"+ typ)
-					
-			fitparam = setFitParam(f1, f2, index, 0)
+						
+			fitter = fittingTool(f1[index], gEfficiency)
+			
 			print "trigger", trigger
-			f1[index].SetParLimits(1, 1, 99)
-			if(trigger == "ditau"): fitparam.setDiTauFitParameters()
-			if(trigger == "mutau"): fitparam.setMuTauFitParameters()
-			if(trigger == "etau"): fitparam.setETauFitParameters()
 
 			h_errBand68.append(TH1F(histoname+"_CL68","histo of 0.68 confidence band", 480, 20, 500))
 			g_errBand68.append(TGraphErrors())
-		
-			print "Fit is performed for", trigger, "trigger in", wp ,"WP for", typ 
-			print "Fit parameters:", f1[index].GetParameter(0), f1[index].GetParameter(1), f1[index].GetParameter(2), f1[index].GetParameter(3), f1[index].GetParameter(4), f1[index].GetParameter(5)    
-			
-			fit_result = gEfficiency.Fit('f1'+ typ, 'S')
+
+			fit_result = fitter.performFit()
+
 			if int(fit_result) != 0: nfailed += 1
 			funct = functions(gEfficiency, "histo_" + trigger + "ErrorBand_" + wp +"_"+ typ, idm, index, f1, h_errBand68[index], g_errBand68[index], fit_result, 0.68)
 			
@@ -129,52 +130,16 @@ for ipath, trigger in enumerate(triggers):
 			# per DM efficiencies
 			for idm, DM in enumerate(tauDMs):
 				
+				print "Fit is performed for", trigger, "trigger in", wp ,"WP for", typ , " per DM", DM
+				
 				gEfficiencyDM = TGraphAsymmErrors()
 				gEfficiencyDM = file.Get(trigger +"_gEfficiency_" + wp +"_"+ typ +"_"+ DM)
-			
-				fitparam2 = setFitParam(f1, f2, index, idm)
-				f2[idm][index].SetParLimits(1, 1, 99)
-				print "wp", wp
-				if(trigger == "ditau"): 
-					if(DM =="dm0" or DM =="dm1"): 
-						fitparam2.setDiTauFitParametersDM0DM1()
-					elif(DM =="dm10"):
-						if(wp=="tightTauMVA"): fitparam2.setDiTauFitParametersDM10_tightWP()
-						elif(wp=="vtightTauMVA"): fitparam2.setDiTauFitParametersDM10_vtightWP()
-						elif(wp=="vvtightTauMVA"): fitparam2.setDiTauFitParametersDM10_vvtightWP()
-						elif(wp=="mediumTauMVA"): fitparam2.setDiTauFitParametersDM10_mediumWP()
-						elif(wp=="looseTauMVA"): fitparam2.setDiTauFitParametersDM10_looseWP()
-						elif(wp=="vlooseTauMVA"): fitparam2.setDiTauFitParametersDM10_vlooseWP()
-						
-				if(trigger == "mutau"): 
-					if(DM =="dm0" or DM =="dm1"): 
-						fitparam2.setMuTauFitParametersDM0DM1()
-					elif(DM =="dm10"):
-						if(wp=="tightTauMVA"): fitparam2.setMuTauFitParametersDM10_tightWP()
-						elif(wp=="vtightTauMVA"): fitparam2.setMuTauFitParametersDM10_vtightWP()
-						elif(wp=="vvtightTauMVA"): fitparam2.setMuTauFitParametersDM10_vvtightWP()
-						elif(wp=="mediumTauMVA"): fitparam2.setMuTauFitParametersDM10_mediumWP()
-						elif(wp=="looseTauMVA"): fitparam2.setMuTauFitParametersDM10_looseWP()
-						elif(wp=="vlooseTauMVA"): fitparam2.setMuTauFitParametersDM10_vlooseWP()
-						
-				if(trigger == "etau"): 
-					if(DM =="dm0"): 
-						fitparam2.setETauFitParametersDM0()
-					elif(DM =="dm1"): 
-						fitparam2.setETauFitParametersDM1()
-					elif(DM =="dm10"):
-						if(wp=="tightTauMVA"): fitparam2.setETauFitParametersDM10_tightWP()
-						elif(wp=="vtightTauMVA"): fitparam2.setETauFitParametersDM10_vtightWP()
-						elif(wp=="vvtightTauMVA"): fitparam2.setETauFitParametersDM10_vvtightWP()
-						elif(wp=="mediumTauMVA"): fitparam2.setETauFitParametersDM10_mediumWP()
-						elif(wp=="looseTauMVA"): fitparam2.setETauFitParametersDM10_looseWP()
-						elif(wp=="vlooseTauMVA"): fitparam2.setETauFitParametersDM10_vlooseWP()
+				
+				fitter = fittingTool(f2[idm][index], gEfficiencyDM)
 
-							
-				print "Fit is performed for", trigger, "trigger in", wp ,"WP for", typ , " per DM", DM
-				print "Fit parameters:", f2[idm][index].GetParameter(0), f2[idm][index].GetParameter(1), f2[idm][index].GetParameter(2), f2[idm][index].GetParameter(3), f2[idm][index].GetParameter(4), f2[idm][index].GetParameter(5)    
-							
-				fit_result2 = gEfficiencyDM.Fit('f2_'+ DM +"_" + typ, 'S')
+				fit_result2 = fitter.performFit()
+
+				print 'fitresult', int(fit_result2), fit_result2.Chi2()
 				if int(fit_result2) != 0: nfailed += 1
 				functDM = functions(gEfficiencyDM, "histo_" + trigger + "_" + wp +"_"+ typ, idm, index, f2[idm] , h_errBandDM68[idm][index], g_errBandDM68[idm][index], fit_result2, 0.68)
 				h_errBandDM68[idm][index], g_errBandDM68[idm][index] = functDM.getConfidenceInterval()
@@ -207,7 +172,7 @@ for ipath, trigger in enumerate(triggers):
 			SFdm.Write(trigger + "_ScaleFactor_" + wp + '_' + DM)
 			SFdmerror.Write(trigger + '_ScaleFactorUnc_' + wp + '_' + DM)
 			
-print nfailed
+print 'Number of fits that did not converge: ', nfailed
 outputfile.Close()
 print "The output ROOT file has been created: ../data/" + outputname
 
