@@ -4,13 +4,13 @@ gROOT.SetBatch(True)
 from math import sqrt
 from functions import * 
 from binning2017 import *
-#from binning2018 import *
-from setFitParam2017 import *
+from binning2018 import *
+from setFitParam import *
 
 #choose which year do you want to run it:
-Samples2016 = True
+Samples2016 = False
 Samples2017 = False
-Samples2018 = False
+Samples2018 = True
 
 
 # NTuples produced for VVLoose WP using 2017v2 MVA
@@ -60,6 +60,7 @@ elif(Samples2018):
 	
 bin = bins.getBinning()
 binDM = bins.getBinningDM()
+#binDM = bins.getBinningPerDM()
 
 hPtDen = [[],[],[]]
 hPtNum = [[],[],[]]
@@ -96,10 +97,12 @@ for ipath, trigger in enumerate(triggers):
 				if(Samples2017):
  					hPtDenDM[ipath][index][ind].append(TH1F (histoname + "_Den_" + DM, "", len(binDM[trigger][DM][typ])-1, array('f',binDM[trigger][DM][typ])))
 					hPtNumDM[ipath][index][ind].append(TH1F (histoname + "_Num_" + DM, "", len(binDM[trigger][DM][typ])-1, array('f',binDM[trigger][DM][typ])))
-				else:
+				elif(Samples2018):
 					hPtDenDM[ipath][index][ind].append(TH1F (histoname + "_Den_" + DM, "", len(binDM[trigger][DM][typ])-1, array('f',binDM[trigger][DM][typ])))
 					hPtNumDM[ipath][index][ind].append(TH1F (histoname + "_Num_" + DM, "", len(binDM[trigger][DM][typ])-1, array('f',binDM[trigger][DM][typ])))
-
+					#hPtDenDM[ipath][index][ind].append(TH1F (histoname + "_Den_" + DM, "", len(binDM[trigger])-1, array('f',binDM[trigger])))
+					#hPtNumDM[ipath][index][ind].append(TH1F (histoname + "_Num_" + DM, "", len(binDM[trigger])-1, array('f',binDM[trigger])))
+ 
 for index, filename in enumerate(files):
 	print  "filename", filename
 	
