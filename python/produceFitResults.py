@@ -105,7 +105,7 @@ for ipath, trigger in enumerate(triggers):
 			
 			funct = functions(gEfficiency, "histo_" + trigger + "ErrorBand_" + wp +"_"+ typ, idm, index, f1, h_errBand68[index], g_errBand68[index], fit_result, 0.68)
 			
-			h_errBand68[index], g_errBand68[index] = funct.getConfidenceInterval(types.index(typ)) 
+			h_errBand68[index], g_errBand68[index] = funct.getConfidenceInterval() 
 
 			# Set the title of the histograms/graphs and their axes
 			gEfficiency.SetTitle(trigger +"Path_" + wp +"_"+ typ)
@@ -143,11 +143,10 @@ for ipath, trigger in enumerate(triggers):
 
 				fit_result2 = fitter.performFit()
 
-				print 'fitresult', int(fit_result2), fit_result2.Chi2(), fit_result2.Ndf(), fit_result2.NFreeParameters()
 				if int(fit_result2) != 0: nfailed += 1			
 	
 				functDM = functions(gEfficiency, "histo_" + trigger + "_" + wp +"_"+ typ, idm, index, f2[idm] , h_errBandDM68[idm][index], g_errBandDM68[idm][index], fit_result2, 0.68)
-				h_errBandDM68[idm][index], g_errBandDM68[idm][index] = functDM.getConfidenceInterval(types.index(typ))
+				h_errBandDM68[idm][index], g_errBandDM68[idm][index] = functDM.getConfidenceInterval()
 
 				f2result = TF1( 'f2', '[5] - ROOT::Math::crystalball_cdf(-x, [0], [1], [2], [3])*([4])', 0, 500)
 				f2result.SetParameter(0, f2[idm][index].GetParameter(0))

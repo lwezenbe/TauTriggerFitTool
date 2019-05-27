@@ -132,7 +132,7 @@ class functions:
                 return SFnew
 	
 	
-        def getConfidenceInterval( self, index): 
+        def getConfidenceInterval( self): 
 
 		TVirtualFitter.GetFitter().GetConfidenceIntervals(self.histo, self.CL)
                 for i in range(0, self.graphEffi.GetN()):
@@ -149,7 +149,7 @@ class functions:
 		interval = TGraphErrors(self.graphEffi.GetN())
                 ratio = TGraphAsymmErrors(self.graphEffi.GetN())
                 ratio2 = TGraphAsymmErrors(self.graphEffi.GetN())
-                for i in range(0, len(values)):
+                for i in range(0, self.graphEffi.GetN()):
                         interval.SetPoint(i, self.graphEffi.GetX()[i], self.func[self.itype].Eval(self.graphEffi.GetX()[i] ))
                         interval.SetPointError(i, 0, values[i] )
                         ratio.SetPoint(i, self.graphEffi.GetX()[i], (self.func[self.itype].Eval(self.graphEffi.GetX()[i]) - values[i])/self.func[self.itype].Eval(self.graphEffi.GetX()[i]))
