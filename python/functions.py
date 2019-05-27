@@ -2,9 +2,7 @@ from ROOT import *
 from array import array
 from math import sqrt
 
-
 class functions:
-
 	def __init__(self,graphEffi, name, dm, itype, func, histo, graph, fitresult, CL):
 		self.graphEffi = graphEffi
 		self.name = name
@@ -134,13 +132,12 @@ class functions:
                 return SFnew
 	
 	
-        def getConfidenceInterval( self): 
+        def getConfidenceInterval( self, index): 
 
-                TVirtualFitter.GetFitter().GetConfidenceIntervals(self.histo, self.CL)
-
+		TVirtualFitter.GetFitter().GetConfidenceIntervals(self.histo, self.CL)
                 for i in range(0, self.graphEffi.GetN()):
                         self.graph.SetPoint(i, self.graphEffi.GetX()[i], 0)
-                        TVirtualFitter.GetFitter().GetConfidenceIntervals(self.graph, self.CL)
+			TVirtualFitter.GetFitter().GetConfidenceIntervals(self.graph, self.CL)
 
                 return self.histo, self.graph
 
@@ -149,10 +146,10 @@ class functions:
 
                 # confidence interval#
                 values = self.fitresult.GetConfidenceIntervals(0.68, False)
-                interval = TGraphErrors(self.graphEffi.GetN())
+		interval = TGraphErrors(self.graphEffi.GetN())
                 ratio = TGraphAsymmErrors(self.graphEffi.GetN())
                 ratio2 = TGraphAsymmErrors(self.graphEffi.GetN())
-                for i in range(0, self.graphEffi.GetN()):
+                for i in range(0, len(values)):
                         interval.SetPoint(i, self.graphEffi.GetX()[i], self.func[self.itype].Eval(self.graphEffi.GetX()[i] ))
                         interval.SetPointError(i, 0, values[i] )
                         ratio.SetPoint(i, self.graphEffi.GetX()[i], (self.func[self.itype].Eval(self.graphEffi.GetX()[i]) - values[i])/self.func[self.itype].Eval(self.graphEffi.GetX()[i]))

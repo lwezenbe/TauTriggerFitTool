@@ -55,7 +55,7 @@ if(Samples2016):
 elif(Samples2017):
 	bins = getbinning2017()
 elif(Samples2018):
-	bins = getbinning2017()
+	bins = getbinning2018()
 	
 bin = bins.getBinning()
 binDM = bins.getBinningDM()
@@ -330,11 +330,11 @@ for ipath, trigger in enumerate(triggers):
 
 			funct = functions(g_efficiency, trigger + "Efficiency_" + wp +"_"+ typ, 0, 0, 0, 0, 0, 0, 0) 			
 			h_efficiency = funct.getTH1FfromTGraphAsymmErrors() 
-
+			
 			# write the histograms/graphs into the output ROOT file before the fit
 			g_efficiency.Write(trigger +"_gEfficiency_" + wp +"_"+ typ)
 			h_efficiency.Write(trigger +"_hEfficiency_" + wp +"_"+ typ)
-				
+			
 			# Set the title of the histograms/graphs and their axes
 			g_efficiency.SetTitle(trigger +"Path_" + wp +"_"+ typ)
 			g_efficiency.GetYaxis().SetTitle("Efficiency")
@@ -342,14 +342,13 @@ for ipath, trigger in enumerate(triggers):
 			h_efficiency.SetTitle(trigger +"Path_" + wp +"_"+ typ)
 			h_efficiency.GetYaxis().SetTitle("Efficiency")
 			h_efficiency.GetXaxis().SetTitle("Offline p_{T}^{#tau} [GeV]")
-
+			
 			# per DM efficiencies
 			for idm, DM in enumerate(tauDMs):
 				g_efficiencyDM = TGraphAsymmErrors()
 				g_efficiencyDM.BayesDivide(hPtNumDM[ipath][index][WPind][idm],hPtDenDM[ipath][index][WPind][idm])
 				funct2 = functions(g_efficiencyDM, trigger + "_Efficiency" + wp +"_"+ typ + "_" + DM, idm, 0 ,0, 0, 0, 0, 0) 		
 				h_efficiencyDM = funct2.getTH1FfromTGraphAsymmErrors()
-				
 				g_efficiencyDM.Write(trigger +"_gEfficiency_" + wp +"_" + typ + "_" + DM)
 				h_efficiencyDM.Write(trigger +"_hEfficiency_" + wp +"_" + typ + "_" + DM)
 
